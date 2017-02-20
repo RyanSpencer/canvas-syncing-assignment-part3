@@ -19,7 +19,36 @@
             
             ctx.fillRect(drawCall.x, drawCall.y, drawCall.width, drawCall.height);
         }
-    }
+    };
+    const setup = () => {
+        const time = new Date().getTime();
+        let x = Math.floor(Math.random() * (300 - 10) + 10);
+        let y = Math.floor(Math.random() * (300 - 10) + 10);
+        draws[user] = {lastUpdate: time. x: x, y: y, width: 100, height: 100};
+        
+        setInterval(() => {
+            const time = new Date().getTime();
+            
+            draws[user].lastUpdate = time;
+            draws[user].x += 5;
+            
+            socket.emit('draw', {name: user, coords: draws[user]});
+            
+            draw();
+        }, 3000);
+    };
+
+    const hamdleMessage = (data) => {
+        if (!draws[data.name]) {
+            draws[data.name] = data.coords;
+        }
+        else if (data.coords.lastUpdate > draws[data.name].lastUpdate) {
+            draws[data.name] = data.coords;
+        }
+        
+        draw();
+    };
+    
 
     const init = () => {
         canvas = document.querySelector("#canvas");
