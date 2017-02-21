@@ -23,6 +23,9 @@ const onJoin = (sock) => {
 
   socket.on('join', () => {
     socket.join('room1');
+    socket.on('draw', (data) => {
+      io.sockets.in('room1').emit('msg', data);
+    });
   });
 };
 

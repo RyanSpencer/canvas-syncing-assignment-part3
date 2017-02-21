@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <script src="https://npmcdn.com/babel-core@5.8.38/browser.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script type="text/babel" >
     "use strict";
-    let canvas, ctx;
+    let canvas, ctx, socket;
     const user = `user ${(Math.floor(Math.random() * 1000) + 1)}`;
 
     let draws = {};
@@ -16,7 +17,7 @@
         
         for (let i = 0; i < keys.length; i++) {
             const drawCall = draws[keys[i]];
-            
+            ctx.fillStyle = drawCall.color;
             ctx.fillRect(drawCall.x, drawCall.y, drawCall.width, drawCall.height);
         }
     };
@@ -24,7 +25,7 @@
         const time = new Date().getTime();
         let x = Math.floor(Math.random() * (300 - 10) + 10);
         let y = Math.floor(Math.random() * (300 - 10) + 10);
-        draws[user] = {lastUpdate: time. x: x, y: y, width: 100, height: 100};
+        draws[user] = {lastUpdate: time, x: x, y: y, width: 100, height: 100, color: 'black'};
         
         setInterval(() => {
             const time = new Date().getTime();
@@ -35,16 +36,18 @@
             socket.emit('draw', {name: user, coords: draws[user]});
             
             draw();
-        }, 3000);
+        }, 2000);
     };
 
-    const hamdleMessage = (data) => {
+    const handleMessage = (data) => {
+        data.coords.color = 'red';
         if (!draws[data.name]) {
             draws[data.name] = data.coords;
         }
         else if (data.coords.lastUpdate > draws[data.name].lastUpdate) {
             draws[data.name] = data.coords;
         }
+        
         
         draw();
     };
@@ -53,6 +56,15 @@
     const init = () => {
         canvas = document.querySelector("#canvas");
         ctx = canvas.getContext('2d');
+        socket = io.connect();
+        socket.on('connect', () => {
+            console.log('connecting');
+            socket.emit('join', {});
+            setup();
+        });
+        socket.on('msg', (data) => {
+            handleMessage(data);
+        });
     };
     window.onload = init;
     </script>
